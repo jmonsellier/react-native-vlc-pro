@@ -1,0 +1,248 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Workflow de développement - React Native VLC Pro
+
+## Processus de développement
+
+### 1. Avant de commencer
+```bash
+# Vérifier l'état du projet
+npm test                    # 65 tests doivent passer
+npm run lint               # 0 erreur ESLint
+npm run type-check         # 0 erreur TypeScript
+npm run build              # Build réussi
+```
+
+### 2. Développement
+- **Branches** : Créer une branche feature/fix depuis main
+- **Commits** : Messages descriptifs en français
+- **Tests** : Écrire les tests en même temps que le code
+- **Documentation** : Mettre à jour [PLANNING.md](mdc:PLANNING.md)
+
+### 3. Validation
+```bash
+# Avant chaque commit
+npm run check              # Tests + lint + types
+git add .
+git commit -m "feat: description de la fonctionnalité"
+```
+
+## Structure des commits
+
+### Convention
+- **feat:** Nouvelle fonctionnalité
+- **fix:** Correction de bug
+- **docs:** Documentation
+- **test:** Ajout/modification de tests
+- **refactor:** Refactoring sans changement fonctionnel
+- **chore:** Tâches de maintenance
+
+### Exemples
+```bash
+git commit -m "feat: ajout méthode getCurrentTime() dans bridge iOS"
+git commit -m "fix: correction timeout des promesses dans VLCPlayerNative"
+git commit -m "test: ajout tests pour navigation temporelle"
+git commit -m "docs: mise à jour progression Phase 1 dans PLANNING.md"
+```
+
+## Gestion des branches
+
+### Branches principales
+- **main** : Code stable, prêt pour production
+- **develop** : Intégration des nouvelles fonctionnalités
+- **feature/*** : Développement de nouvelles fonctionnalités
+- **fix/*** : Corrections de bugs
+
+### Workflow Git
+```bash
+# Créer une branche feature
+git checkout -b feature/support-formats-etendus
+
+# Développer et tester
+npm test
+npm run lint
+
+# Commit et push
+git add .
+git commit -m "feat: support des formats MP4, MKV, AVI"
+git push origin feature/support-formats-etendus
+
+# Merge request vers develop
+```
+
+## Scripts de développement
+
+### Scripts principaux
+```bash
+# Développement
+npm start                  # Démarrer Metro bundler
+npm run android           # Lancer sur Android
+npm run ios               # Lancer sur iOS
+
+# Qualité
+npm test                  # Tests unitaires
+npm run lint              # ESLint
+npm run type-check        # TypeScript
+npm run build             # Build du package
+
+# Utilitaires
+npm run clean             # Nettoyer les caches
+npm run reset             # Reset complet
+```
+
+### Scripts personnalisés
+```bash
+# Vérification complète
+npm run check             # Tests + lint + types + build
+
+# Progression du projet
+npm run progress          # Afficher l'état des tests
+
+# Préparation commit
+npm run pre-commit        # Vérifications avant commit
+```
+
+## Environnement de développement
+
+### Outils requis
+- **Node.js** : 18+ LTS
+- **React Native CLI** : 0.79+
+- **Android Studio** : Pour développement Android
+- **Xcode** : Pour développement iOS (macOS uniquement)
+
+### Configuration IDE
+- **VSCode** : Extensions recommandées
+  - React Native Tools
+  - TypeScript Hero
+  - ESLint
+  - Prettier
+- **Cursor** : Règles configurées dans [.cursor/rules/](mdc:.cursor/rules)
+
+## Tests et validation
+
+### Tests en développement
+```bash
+# Tests en mode watch
+npm test -- --watch
+
+# Tests spécifiques
+npm test VLCPlayer
+npm test useVLCPlayer
+npm test formatTime
+
+# Tests avec couverture
+npm test -- --coverage
+```
+
+### Validation avant merge
+1. **Tests** : 65/65 doivent passer ✅
+2. **Linting** : 0 erreur ESLint ✅
+3. **Types** : 0 erreur TypeScript ✅
+4. **Build** : Package doit se construire ✅
+5. **Documentation** : [PLANNING.md](mdc:PLANNING.md) mis à jour
+
+## Gestion des modules natifs
+
+### Développement Android
+```bash
+# Build Android
+cd android
+./gradlew assembleDebug
+
+# Tests sur émulateur
+npm run android
+
+# Logs Android
+npx react-native log-android
+```
+
+### Développement iOS
+```bash
+# Installation des pods
+cd ios && pod install
+
+# Build iOS
+npm run ios
+
+# Logs iOS
+npx react-native log-ios
+```
+
+## Debugging
+
+### JavaScript
+- **Flipper** : Debugging React Native
+- **Chrome DevTools** : Debugging JS
+- **React DevTools** : Inspection des composants
+
+### Modules natifs
+- **Android Studio** : Debugging Java
+- **Xcode** : Debugging Swift/Objective-C
+- **Logs natifs** : Console Android/iOS
+
+## Documentation
+
+### Mise à jour obligatoire
+- **[PLANNING.md](mdc:PLANNING.md)** : Progression et prochaines étapes
+- **README.md** : Instructions d'installation et utilisation
+- **Types TypeScript** : Documentation des interfaces
+
+### Documentation optionnelle
+- **Commentaires code** : Pour logique complexe
+- **Exemples** : Dans [example/](mdc:example)
+- **Guides** : Pour nouvelles fonctionnalités
+
+## Releases
+
+### Préparation release
+1. **Tests complets** : Tous les tests passent
+2. **Documentation** : Mise à jour complète
+3. **Changelog** : Résumé des changements
+4. **Version** : Bump dans package.json
+
+### Process de release
+```bash
+# Vérifications finales
+npm run check
+npm run build
+
+# Tag de version
+git tag v1.0.0
+git push origin v1.0.0
+
+# Publication NPM (futur)
+npm publish
+```
+
+## Bonnes pratiques
+
+### Code
+- **TypeScript strict** : Pas de `any`
+- **Tests obligatoires** : Pour chaque nouvelle fonctionnalité
+- **Gestion d'erreurs** : Try/catch et validation
+- **Performance** : Éviter les re-renders inutiles
+
+### Git
+- **Commits atomiques** : Une fonctionnalité par commit
+- **Messages clairs** : Description précise des changements
+- **Branches courtes** : Merge fréquent vers develop
+
+### Collaboration
+- **Code review** : Validation par un autre développeur
+- **Documentation** : Expliquer les choix techniques
+- **Communication** : Signaler les changements breaking
+
+## Prochaines étapes
+
+### Phase 1, Semaine 4
+1. **Support formats étendus** : MP4, MKV, AVI, MOV
+2. **Streaming avancé** : HLS, DASH, RTMP, RTSP
+3. **Tests réels** : Validation avec vrais fichiers vidéo
+
+### Amélioration workflow
+1. **CI/CD** : Automatisation des tests
+2. **Pre-commit hooks** : Validation automatique
+3. **Performance monitoring** : Métriques continues

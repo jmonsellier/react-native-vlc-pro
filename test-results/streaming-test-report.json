@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-05-24T11:16:57.047Z",
+  "totalSources": 5,
+  "validSources": 5,
+  "invalidSources": 0,
+  "results": [
+    {
+      "name": "MP4 Standard",
+      "status": "valid",
+      "errors": []
+    },
+    {
+      "name": "HLS Stream",
+      "status": "valid",
+      "errors": []
+    },
+    {
+      "name": "DASH Stream",
+      "status": "valid",
+      "errors": []
+    },
+    {
+      "name": "WebM Video",
+      "status": "valid",
+      "errors": []
+    },
+    {
+      "name": "Headers Test",
+      "status": "valid",
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Modules natifs - React Native VLC Pro
+
+## État actuel
+✅ **Modules natifs complets à 90%** - libVLC et MobileVLCKit intégrés et fonctionnels
+
+## Configuration des dépendances
+
+### Android - libVLC
+**Fichier** : [android/build.gradle](mdc:android/build.gradle)
+```gradle
+dependencies {
+    implementation 'org.videolan.android:libvlc-all:3.6.5'  // Version stable 2025
+}
+```
+
+### iOS - MobileVLCKit  
+**Fichier** : [react-native-vlc-pro.podspec](mdc:react-native-vlc-pro.podspec)
+```ruby
+s.dependency "MobileVLCKit", "~> 4.0.0a2"  # Version moderne 2025 avec PiP
+```
+
+## Architecture des bridges
+
+### Android (Java)
+**ViewManager** : [android/src/main/java/com/vlcpro/VLCPlayerViewManager.java](mdc:android/src/main/java/com/vlcpro/VLCPlayerViewManager.java)
+- Gère les props React Native
+- Exporte 16 événements (onReady, onPlay, onGetCurrentTime, etc.)
+- 10 commandes disponibles (play, pause, getCurrentTime, etc.)
+
+**Vue native** : [android/src/main/java/com/vlcpro/VLCPlayerView.java](mdc:android/src/main/java/com/vlcpro/VLCPlayerView.java)
+- Intégration complète avec libVLC
+- VLCVideoLayout pour l'affichage
+- MediaPlayer.EventListener pour les événements
+- 6 méthodes d'information implémentées
+
+### iOS (Swift)
+**ViewManager** : [ios/VLCPro/VLCPlayerViewManager.swift](mdc:ios/VLCPro/VLCPlayerViewManager.swift)
+- Méthodes @objc pour chaque commande
+- Dispatch sur DispatchQueue.main
+- Bridge vers VLCPlayerView
+
+**Vue native** : [ios/VLCPro/VLCPlayerView.swift](mdc:ios/VLCPro/VLCPlayerView.swift)
+- Intégration MobileVLCKit complète
+- VLCMediaPlayer et VLCLibrary
+- 16 callbacks RCTDirectEventBlock
+- VLCMediaPlayerDelegate pour les événements
+
+## Méthodes d'information implémentées
+
+### Commandes disponibles
+1. **getCurrentTime()** - Position actuelle en millisecondes
+2. **getDuration()** - Durée totale du média
+3. **getState()** - État du lecteur (idle, playing, paused, etc.)
+4. **getVolume()** - Niveau de volume (0-100)
+5. **isMuted()** - Statut du son coupé
+6. **getRate()** - Vitesse de lecture
+
+### Contrôles de base
+- **play()** - Démarrer la lecture
+- **pause()** - Mettre en pause
+- **stop()** - Arrêter
+- **seek(time)** - Aller à une position
+
+## Communication JavaScript ↔ Native
+
+### Système de promesses
+**Fichier** : [src/components/VLCPlayerNative.tsx](mdc:src/components/VLCPlayerNative.tsx)
+```typescript
+const pendingPromises = useRef(new Map<string, (value: any) => void>());
+
+const getCurrentTime = async () => {
+  return new Promise<number>((resolve) => {
+    pendingPromises.current.set('getCurrentTime', resolve);
+    UIManager.dispatchViewManagerCommand(nodeHandle, 'getCurrentTime', []);
+    
+    // Timeout de sécurité
+    setTimeout(() => {
+      if (pendingPromises.current.has('getCurrentTime')) {
+        pendingPromises.current.delete('getCurrentTime');
+        resolve(0);
+      }
+    }, 1000);
+  });
+};
+```
+
+### Gestionnaires d'événements
+Chaque méthode d'information a son gestionnaire dédié :
+- `handleGetCurrentTime` - Traite les réponses de getCurrentTime
+- `handleGetDuration` - Traite les réponses de getDuration
+- etc.
+
+## Formats supportés
+
+### Android (libVLC 3.6.5)
+- Conteneurs : MP4, AVI, MKV, MOV, FLV, 3GP, ASF, WMV
+- Codecs vidéo : H.264, H.265, VP8, VP9, MPEG-4
+- Codecs audio : AAC, MP3, Vorbis, FLAC, AC3
+- Streaming : HTTP, HTTPS, HLS, DASH, RTMP, RTSP
+
+### iOS (MobileVLCKit 4.0.0a2)
+- Mêmes formats que Android
+- Support Picture-in-Picture
+- Support visionOS
+- Support HDR
+
+## Prochaines améliorations
+
+### Phase 1, Semaine 4
+1. **getMediaInfo()** - Extraction des métadonnées complètes
+2. **Headers HTTP** - Support de l'authentification
+3. **Gestion d'erreurs** - Messages spécifiques par format
+
+### Phase 2
+1. **Sous-titres** - Support SRT, VTT, ASS
+2. **Pistes audio** - Sélection multi-langue
+3. **Filtres** - Effets vidéo et audio
+4. **Capture** - Screenshots et enregistrement

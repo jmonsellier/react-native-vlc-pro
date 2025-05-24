@@ -1,0 +1,72 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Structure du code - React Native VLC Pro
+
+## Architecture des dossiers
+
+### Source principal ([src/](mdc:src))
+- **[src/components/](mdc:src/components)** - Composants React Native
+  - [VLCPlayer.tsx](mdc:src/components/VLCPlayer.tsx) - Composant principal public
+  - [VLCPlayerNative.tsx](mdc:src/components/VLCPlayerNative.tsx) - Bridge vers les vues natives
+- **[src/hooks/](mdc:src/hooks)** - Hooks personnalisés
+  - [useVLCPlayer.ts](mdc:src/hooks/useVLCPlayer.ts) - Hook principal pour contrôler le lecteur
+- **[src/types/](mdc:src/types)** - Définitions TypeScript
+  - [VLCPlayer.ts](mdc:src/types/VLCPlayer.ts) - Types principaux du lecteur
+  - [Events.ts](mdc:src/types/Events.ts) - Types d'événements
+  - [Media.ts](mdc:src/types/Media.ts) - Types de médias
+  - [Config.ts](mdc:src/types/Config.ts) - Types de configuration
+- **[src/utils/](mdc:src/utils)** - Utilitaires
+  - [formatTime.ts](mdc:src/utils/formatTime.ts) - Formatage du temps
+
+### Modules natifs
+- **[android/](mdc:android)** - Code Android (Java)
+  - [android/src/main/java/com/vlcpro/VLCPlayerViewManager.java](mdc:android/src/main/java/com/vlcpro/VLCPlayerViewManager.java) - ViewManager Android
+  - [android/src/main/java/com/vlcpro/VLCPlayerView.java](mdc:android/src/main/java/com/vlcpro/VLCPlayerView.java) - Vue native Android
+  - [android/build.gradle](mdc:android/build.gradle) - Configuration Gradle avec libVLC
+- **[ios/](mdc:ios)** - Code iOS (Swift)
+  - [ios/VLCPro/VLCPlayerViewManager.swift](mdc:ios/VLCPro/VLCPlayerViewManager.swift) - ViewManager iOS
+  - [ios/VLCPro/VLCPlayerView.swift](mdc:ios/VLCPro/VLCPlayerView.swift) - Vue native iOS
+  - [react-native-vlc-pro.podspec](mdc:react-native-vlc-pro.podspec) - Configuration CocoaPods avec MobileVLCKit
+
+### Application d'exemple
+- **[example/](mdc:example)** - Application de démonstration
+  - [example/App.tsx](mdc:example/App.tsx) - Interface de test interactive
+
+### Tests
+- **[__tests__/](mdc:__tests__)** - Suite de tests complète (65 tests)
+  - Tests des composants, hooks et utilitaires
+
+## Conventions de code
+
+### TypeScript
+- Types stricts activés
+- Interfaces préfixées par `VLC` (ex: `VLCPlayerProps`)
+- Exports nommés depuis les fichiers index
+
+### React Native
+- Composants fonctionnels avec hooks
+- forwardRef pour exposer les méthodes imperatives
+- Gestion d'erreurs avec try/catch
+
+### Modules natifs
+- **Android** : ViewManager + View pattern
+- **iOS** : @objc methods avec DispatchQueue.main
+- Communication via UIManager.dispatchViewManagerCommand
+
+## Patterns importants
+
+### Système de promesses
+Le bridge utilise un système de Map pour gérer les réponses asynchrones :
+```typescript
+const pendingPromises = useRef(new Map<string, (value: any) => void>());
+```
+
+### Gestion des événements
+Chaque méthode d'information a son propre gestionnaire d'événement :
+- `onGetCurrentTime`, `onGetDuration`, `onGetState`, etc.
+
+### Timeouts de sécurité
+Toutes les promesses ont un timeout de 1000ms pour éviter les blocages.

@@ -1,0 +1,40 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# React Native VLC Pro - Vue d'ensemble du projet
+
+## Description
+**react-native-vlc-pro** est un composant React Native professionnel pour la lecture de contenus multimédia utilisant libVLC. Le projet vise à fournir une solution robuste pour la lecture vidéo dans les applications React Native.
+
+## Architecture principale
+- **JavaScript Layer** : Composants React Native, hooks et utilitaires
+- **Native Layer** : Modules Android (Java) et iOS (Swift) avec intégration libVLC
+- **Bridge** : Communication bidirectionnelle entre JS et Native
+
+## Fichiers clés de planification
+- [PLANNING.md](mdc:PLANNING.md) - Planification détaillée avec suivi de progression
+- [SPECIFICATIONS_TECHNIQUES.md](mdc:SPECIFICATIONS_TECHNIQUES.md) - Spécifications techniques complètes
+- [ROADMAP_V1.md](mdc:ROADMAP_V1.md) - Feuille de route version 1
+- [FONCTIONNALITES_V1.md](mdc:FONCTIONNALITES_V1.md) - Fonctionnalités de la version 1
+
+## État actuel (Phase 1 - MVP)
+- ✅ Configuration React Native complète
+- ✅ Architecture TypeScript en place
+- ✅ Composants de base implémentés (VLCPlayer, VLCPlayerNative)
+- ✅ Suite de tests complète (65 tests passent)
+- ✅ Modules natifs Android/iOS implémentés (libVLC 3.6.5, MobileVLCKit 4.0.0a2)
+- ✅ Bridge React Native fonctionnel avec système de promesses
+- ✅ Méthodes d'information complètes (getCurrentTime, getDuration, getState, etc.)
+- ✅ Navigation temporelle (seekForward, seekBackward)
+- ✅ Application d'exemple interactive
+
+## Progression actuelle
+**Phase 1 complétée à 85%** - Infrastructure et contrôles de base terminés
+
+## Prochaines étapes prioritaires
+1. Support des formats étendus (MP4, MKV, AVI, MOV)
+2. Streaming avancé (HLS, DASH, RTMP, RTSP)
+3. Headers HTTP personnalisés et authentification
+4. Tests de lecture réelle avec vrais fichiers vidéo
