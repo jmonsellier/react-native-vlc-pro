@@ -1,11 +1,18 @@
 package com.vlcpro;
 
+import android.app.Activity;
+import android.app.PictureInPictureParams;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.util.AttributeSet;
+import android.util.Rational;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -49,6 +56,7 @@ public class VLCPlayerView extends ViewGroup implements MediaPlayer.EventListene
     private String currentState = "idle";
     private long currentTime = 0;
     private long duration = 0;
+    private boolean isFullscreen = false;
     
     public VLCPlayerView(Context context) {
         super(context);
@@ -430,6 +438,135 @@ public class VLCPlayerView extends ViewGroup implements MediaPlayer.EventListene
         data.putBoolean("canPause", true);
         data.putBoolean("canSeek", true);
         return data;
+    }
+    
+    // MARK: - Fullscreen Management
+    
+    public void toggleFullscreen() {
+        android.util.Log.d("VLCPlayerView", "toggleFullscreen() appelé, isFullscreen=" + isFullscreen);
+        
+        if (isFullscreen) {
+            // Sortir du plein écran (ne devrait pas arriver car géré par l'Activity)
+            isFullscreen = false;
+            WritableMap data = Arguments.createMap();
+            data.putBoolean("isFullscreen", false);
+            sendEvent("onFullscreenChange", data);
+            return;
+        }
+        
+        // Entrer en plein écran en lançant l'Activity dédiée
+        Activity activity = getActivity();
+        if (activity == null) {
+            android.util.Log.e("VLCPlayerView", "Activity est null");
+            sendError("FULLSCREEN_ERROR", "Impossible d'accéder à l'Activity pour le plein écran");
+            return;
+        }
+        
+        // Obtenir l'URI du média actuel
+        String mediaUri = null;
+        if (source != null && source.hasKey("uri")) {
+            mediaUri = source.getString("uri");
+        }
+        
+        if (mediaUri == null) {
+            sendError("FULLSCREEN_ERROR", "Aucun média chargé pour le plein écran");
+            return;
+        }
+        
+        // Obtenir le temps actuel
+        long currentTime = 0;
+        if (mediaPlayer != null) {
+            currentTime = mediaPlayer.getTime();
+        }
+        
+        android.util.Log.d("VLCPlayerView", "Lancement de l'Activity plein écran avec URI: " + mediaUri + " et temps: " + currentTime);
+        
+        // Lancer l'Activity plein écran
+        try {
+            android.content.Intent intent = new android.content.Intent(activity, VLCFullscreenActivity.class);
+            intent.putExtra(VLCFullscreenActivity.EXTRA_MEDIA_URI, mediaUri);
+            intent.putExtra(VLCFullscreenActivity.EXTRA_CURRENT_TIME, currentTime);
+            activity.startActivity(intent);
+            
+            // Marquer comme en plein écran
+            isFullscreen = true;
+            WritableMap data = Arguments.createMap();
+            data.putBoolean("isFullscreen", true);
+            sendEvent("onFullscreenChange", data);
+            
+            android.util.Log.d("VLCPlayerView", "Activity plein écran lancée avec succès");
+            
+        } catch (Exception e) {
+            android.util.Log.e("VLCPlayerView", "Erreur lors du lancement de l'Activity plein écran", e);
+            sendError("FULLSCREEN_ERROR", "Impossible de lancer l'Activity plein écran: " + e.getMessage());
+        }
+    }
+    
+    // MARK: - Picture-in-Picture Management
+    
+    public void enterPictureInPicture() {
+        android.util.Log.d("VLCPlayerView", "enterPictureInPicture() appelé");
+        
+        // Vérifier si PiP est supporté (API 24+)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            android.util.Log.w("VLCPlayerView", "Picture-in-Picture non supporté sur cette version d'Android (API < 24)");
+            sendError("PIP_NOT_SUPPORTED", "Picture-in-Picture nécessite Android 7.0 ou plus récent");
+            return;
+        }
+        
+        Activity activity = getActivity();
+        if (activity == null) {
+            android.util.Log.e("VLCPlayerView", "Activity est null");
+            sendError("PIP_ERROR", "Impossible d'accéder à l'Activity pour le Picture-in-Picture");
+            return;
+        }
+        
+        try {
+            // Créer les paramètres PiP
+            PictureInPictureParams.Builder pipBuilder = new PictureInPictureParams.Builder();
+            
+            // Définir le ratio d'aspect (16:9 par défaut)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                pipBuilder.setAspectRatio(new Rational(16, 9));
+            }
+            
+            // Entrer en mode Picture-in-Picture
+            boolean success = activity.enterPictureInPictureMode(pipBuilder.build());
+            
+            if (success) {
+                android.util.Log.d("VLCPlayerView", "Picture-in-Picture activé avec succès");
+                
+                // Notifier React Native
+                WritableMap data = Arguments.createMap();
+                data.putBoolean("isPictureInPicture", true);
+                sendEvent("onPictureInPictureChange", data);
+                
+            } else {
+                android.util.Log.w("VLCPlayerView", "Échec de l'activation du Picture-in-Picture");
+                sendError("PIP_FAILED", "Impossible d'activer le Picture-in-Picture");
+            }
+            
+        } catch (Exception e) {
+            android.util.Log.e("VLCPlayerView", "Erreur lors de l'activation du Picture-in-Picture", e);
+            sendError("PIP_ERROR", "Erreur Picture-in-Picture: " + e.getMessage());
+        }
+    }
+    
+    private Activity getActivity() {
+        Context context = getContext();
+        while (context instanceof ReactContext) {
+            ReactContext reactContext = (ReactContext) context;
+            if (reactContext.getCurrentActivity() != null) {
+                return reactContext.getCurrentActivity();
+            }
+            context = reactContext.getBaseContext();
+        }
+        
+        if (context instanceof Activity) {
+            return (Activity) context;
+        }
+        
+        return null;
     }
     
     // MARK: - Cleanup

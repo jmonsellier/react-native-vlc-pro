@@ -93,6 +93,8 @@ export interface VLCPlayerProps {
   onRateChange?: (rateData: PlaybackRateData) => void;
   /** Appelé quand le mode plein écran change */
   onFullscreenChange?: (fullscreenData: FullscreenData) => void;
+  /** Appelé quand le mode Picture-in-Picture change */
+  onPictureInPictureChange?: (pipData: { isPictureInPicture: boolean }) => void;
   /** Appelé quand la piste de sous-titres change */
   onSubtitleTrackChange?: (subtitleData: SubtitleData) => void;
   /** Appelé quand la piste audio change */
@@ -145,6 +147,8 @@ export interface VLCPlayerRef {
   // Interface
   /** Basculer en plein écran */
   toggleFullscreen: () => Promise<void>;
+  /** Entrer en mode Picture-in-Picture */
+  enterPictureInPicture: () => Promise<void>;
   /** Prendre une capture d'écran */
   takeSnapshot: () => Promise<string>;
 

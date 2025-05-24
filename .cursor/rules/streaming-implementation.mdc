@@ -3,3 +3,94 @@ description:
 globs:
 alwaysApply: false
 ---
+# Streaming et Headers HTTP - Guide d'Implémentation
+
+## 📺 Fonctionnalités de Streaming Implémentées
+
+### ✅ Support des Formats
+Référence : [src/types/Media.ts](mdc:src/types/Media.ts)
+
+**Formats supportés** :
+- MP4, AVI, MKV, MOV, FLV, WebM
+- HLS (HTTP Live Streaming) - `.m3u8`
+- DASH (Dynamic Adaptive Streaming) - `.mpd`
+- RTMP, RTSP pour streaming en temps réel
+
+### ✅ Headers HTTP (Android)
+Implémentation : [android/src/main/java/com/vlcpro/VLCPlayerView.java](mdc:android/src/main/java/com/vlcpro/VLCPlayerView.java)
+
+**Headers supportés** :
+- `User-Agent` → `:http-user-agent`
+- `Authorization` → `:http-password`
+- `Referer` → `:http-referrer`
+- `Cookie` → `:http-cookies`
+- Headers personnalisés → `:http-forward-cookies`
+
+### ✅ Exemples d'Utilisation
+Référence : [example/StreamingExamples.tsx](mdc:example/StreamingExamples.tsx)
+
+```typescript
+// Exemple avec headers d'authentification
+<VLCPlayer
+  source={{
+    uri: 'https://example.com/protected-stream.m3u8',
+    headers: {
+      'Authorization': 'Basic dXNlcjpwYXNz',
+      'User-Agent': 'ReactNativeVLCPro/1.0'
+    }
+  }}
+/>
+```
+
+## 🧪 Tests de Validation
+
+### Script de Test Automatisé
+Fichier : [scripts/test-streaming.js](mdc:scripts/test-streaming.js)
+
+**Sources de test validées** :
+1. MP4 Standard - Big Buck Bunny ✅
+2. HLS Stream - Apple Test ✅
+3. DASH Stream - Akamai ✅
+4. WebM Video ✅
+5. Headers Test - httpbin.org ✅
+
+**Commande** : `node scripts/test-streaming.js`
+**Résultat attendu** : 100% de réussite (5/5 sources valides)
+
+## 📖 Documentation
+Guide complet : [docs/STREAMING_GUIDE.md](mdc:docs/STREAMING_GUIDE.md)
+
+**Sections couvertes** :
+- Formats et protocoles supportés
+- Authentification HTTP (Basic, Bearer, Cookies)
+- Configuration avancée VLC
+- Exemples d'applications
+- Gestion des erreurs
+- Optimisation des performances
+
+## 🔄 Prochaines Étapes
+
+### iOS Headers Support
+**TODO** : Implémenter le support des headers HTTP dans [ios/VLCPro/VLCPlayerView.swift](mdc:ios/VLCPro/VLCPlayerView.swift)
+
+```swift
+// À ajouter dans loadMedia(from source:)
+if let headers = source["headers"] as? [String: String] {
+    for (key, value) in headers {
+        media?.addOption("\(key)=\(value)")
+    }
+}
+```
+
+### Tests sur Appareils Réels
+**Objectif** : Valider les exemples [example/StreamingExamples.tsx](mdc:example/StreamingExamples.tsx) et [example/AdvancedPlayerExample.tsx](mdc:example/AdvancedPlayerExample.tsx) sur :
+- Émulateur Android
+- Simulateur iOS
+- Appareils physiques
+
+### Métriques de Performance
+**À implémenter** :
+- Temps de démarrage de stream
+- Utilisation mémoire pendant le streaming
+- Gestion des interruptions réseau
+- Qualité adaptative (HLS/DASH)

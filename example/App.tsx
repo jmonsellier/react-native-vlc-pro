@@ -1,268 +1,289 @@
 /**
  * Application d'exemple pour react-native-vlc-pro
- * Phase 1, Semaine 3 : Test des contrôles avancés et méthodes d'information
+ * Test du VRAI composant VLC sur Android
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
   Text,
   View,
+  StatusBar,
   TouchableOpacity,
-  Alert,
   ScrollView,
+  Alert,
+  Clipboard,
+  Platform,
 } from 'react-native';
 
-import { VLCPlayer, useVLCPlayer } from '../src';
-import type { VLCPlayerRef } from '../src';
+// Test d'import du VRAI module VLC
+let VLCPlayer: any;
+let VLCPlayerSimple: any;
+let importStatus = '';
+let useNativePlayer = false;
 
-const App: React.FC = () => {
-  const playerRef = useRef<VLCPlayerRef>(null);
-  const [playerInfo, setPlayerInfo] = useState({
-    currentTime: 0,
-    duration: 0,
-    state: 'idle',
-    volume: 100,
-    muted: false,
-    rate: 1.0,
-  });
+try {
+  const vlcModule = require('react-native-vlc-pro');
+  VLCPlayer = vlcModule.VLCPlayer;
+  VLCPlayerSimple = vlcModule.VLCPlayerSimple;
+  
+  if (VLCPlayer && VLCPlayerSimple) {
+    importStatus = '✅ Module VLC RÉEL importé avec succès';
+    useNativePlayer = true;
+  } else {
+    importStatus = '⚠️ Module VLC partiellement importé';
+  }
+} catch (error: any) {
+  importStatus = `❌ Erreur d'import: ${error.message}`;
+}
 
-  // Test du hook useVLCPlayer
-  const { controls } = useVLCPlayer({
-    source: { uri: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' },
-    autoPlay: false,
-  });
+// URLs de test
+const TEST_VIDEOS = [
+  {
+    name: 'Big Buck Bunny (MP4)',
+    uri: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+  },
+  {
+    name: 'Elephant Dream (MP4)',
+    uri: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+  },
+  {
+    name: 'Test Stream (HLS)',
+    uri: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
+  }
+];
 
-  const handlePlay = async () => {
+export default function App() {
+  const [currentVideo, setCurrentVideo] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [useSimplePlayer, setUseSimplePlayer] = useState(false);
+  const playerRef = useRef<any>(null);
+
+  const addLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const logMessage = `[${timestamp}] ${message}`;
+    setLogs(prev => [logMessage, ...prev.slice(0, 9)]); // Garde les 10 derniers logs
+    console.log(logMessage);
+  };
+
+  const changeVideo = (index: number) => {
+    setCurrentVideo(index);
+    setIsPlaying(false);
+    addLog(`🔄 Changement vers: ${TEST_VIDEOS[index].name}`);
+  };
+
+  const togglePlayerType = () => {
+    setUseSimplePlayer(!useSimplePlayer);
+    addLog(`🔄 Basculement vers: ${!useSimplePlayer ? 'Simple' : 'Natif'} Player`);
+  };
+
+  const testPlayerMethods = async () => {
+    if (!playerRef.current) {
+      addLog('❌ Aucune référence au player');
+      return;
+    }
+
     try {
-      await controls.play();
-      Alert.alert('Info', 'Lecture démarrée');
-    } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de la lecture');
+      addLog('🧪 Test des méthodes du VRAI player VLC...');
+      
+      // Test play
+      await playerRef.current.play();
+      addLog('✅ play() - OK');
+      
+      // Test getCurrentTime
+      const currentTime = await playerRef.current.getCurrentTime();
+      addLog(`✅ getCurrentTime() - ${currentTime}ms`);
+      
+      // Test getDuration
+      const duration = await playerRef.current.getDuration();
+      addLog(`✅ getDuration() - ${duration}ms`);
+      
+      // Test getState
+      const state = await playerRef.current.getState();
+      addLog(`✅ getState() - ${state}`);
+      
+    } catch (error: any) {
+      addLog(`❌ Erreur test: ${error.message}`);
     }
   };
 
-  const handlePause = async () => {
+  const generateFeedbackText = () => {
+    const timestamp = new Date().toLocaleString();
+    return `
+=== FEEDBACK VLC PLAYER RÉEL ===
+Date: ${timestamp}
+Module importé: ${importStatus}
+Player utilisé: ${useSimplePlayer ? 'Simple' : 'Natif'}
+Vidéo testée: ${TEST_VIDEOS[currentVideo].name}
+Plateforme: React Native (${Platform.OS})
+
+=== LOGS RÉCENTS ===
+${logs.slice(0, 5).join('\n')}
+
+=== INFORMATIONS SYSTÈME ===
+- React Native: CLI (pas Expo)
+- OS: ${Platform.OS}
+- Module VLC: ${useNativePlayer ? 'RÉEL - Disponible' : 'Non disponible'}
+
+=== NOTES ===
+[Ajoutez vos observations ici]
+    `.trim();
+  };
+
+  const copyFeedback = async () => {
     try {
-      await controls.pause();
-      Alert.alert('Info', 'Lecture mise en pause');
+      const feedbackText = generateFeedbackText();
+      await Clipboard.setString(feedbackText);
+      addLog('📋 Feedback copié dans le presse-papiers !');
+      Alert.alert(
+        '✅ Copié !',
+        'Le feedback a été copié dans le presse-papiers. Vous pouvez maintenant le coller dans un message.',
+        [{ text: 'OK' }]
+      );
     } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de la pause');
+      addLog('❌ Erreur lors de la copie');
+      Alert.alert('Erreur', 'Impossible de copier le feedback');
     }
   };
 
-  const handleStop = async () => {
-    try {
-      await controls.stop();
-      Alert.alert('Info', 'Lecture arrêtée');
-    } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de l\'arrêt');
-    }
+  const showFeedback = () => {
+    const feedbackText = generateFeedbackText();
+    Alert.alert(
+      'Feedback VLC Player RÉEL',
+      feedbackText,
+      [
+        { text: 'Copier', onPress: copyFeedback },
+        { text: 'Fermer', style: 'cancel' }
+      ],
+      { cancelable: true }
+    );
   };
 
-  // Nouvelles méthodes d'information
-  const handleGetCurrentTime = async () => {
-    try {
-      const currentTime = await playerRef.current?.getCurrentTime();
-      setPlayerInfo(prev => ({ ...prev, currentTime: currentTime || 0 }));
-      Alert.alert('Temps actuel', `${Math.round((currentTime || 0) / 1000)}s`);
-    } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de la récupération du temps');
-    }
+  const showFeedbackInLogs = () => {
+    addLog('📝 === GÉNÉRATION DU FEEDBACK ===');
+    const timestamp = new Date().toLocaleString();
+    
+    addLog(`📅 Date: ${timestamp}`);
+    addLog(`📦 Module: ${importStatus}`);
+    addLog(`🎮 Player: ${useSimplePlayer ? 'Simple' : 'Natif'}`);
+    addLog(`🎬 Vidéo: ${TEST_VIDEOS[currentVideo].name}`);
+    addLog(`📱 Plateforme: React Native (${Platform.OS})`);
+    addLog(`🔧 VLC RÉEL: ${useNativePlayer ? 'Oui' : 'Non'}`);
+    addLog('📝 === FIN DU FEEDBACK ===');
   };
 
-  const handleGetDuration = async () => {
-    try {
-      const duration = await playerRef.current?.getDuration();
-      setPlayerInfo(prev => ({ ...prev, duration: duration || 0 }));
-      Alert.alert('Durée', `${Math.round((duration || 0) / 1000)}s`);
-    } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de la récupération de la durée');
-    }
-  };
-
-  const handleGetState = async () => {
-    try {
-      const state = await playerRef.current?.getState();
-      setPlayerInfo(prev => ({ ...prev, state: state || 'idle' }));
-      Alert.alert('État', state || 'idle');
-    } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de la récupération de l\'état');
-    }
-  };
-
-  const handleGetVolume = async () => {
-    try {
-      const volume = await playerRef.current?.getVolume();
-      setPlayerInfo(prev => ({ ...prev, volume: volume || 100 }));
-      Alert.alert('Volume', `${volume || 100}%`);
-    } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de la récupération du volume');
-    }
-  };
-
-  const handleIsMuted = async () => {
-    try {
-      const muted = await playerRef.current?.isMuted();
-      setPlayerInfo(prev => ({ ...prev, muted: muted || false }));
-      Alert.alert('Son coupé', muted ? 'Oui' : 'Non');
-    } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de la vérification du son');
-    }
-  };
-
-  const handleGetRate = async () => {
-    try {
-      const rate = await playerRef.current?.getRate();
-      setPlayerInfo(prev => ({ ...prev, rate: rate || 1.0 }));
-      Alert.alert('Vitesse', `${rate || 1.0}x`);
-    } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de la récupération de la vitesse');
-    }
-  };
-
-  const handleSeekForward = async () => {
-    try {
-      await controls.seekForward(10);
-      Alert.alert('Info', 'Avance de 10 secondes');
-    } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors de l\'avance');
-    }
-  };
-
-  const handleSeekBackward = async () => {
-    try {
-      await controls.seekBackward(10);
-      Alert.alert('Info', 'Recul de 10 secondes');
-    } catch (error) {
-      Alert.alert('Erreur', 'Erreur lors du recul');
-    }
-  };
+  // Choisir le composant à utiliser
+  const PlayerComponent = useSimplePlayer ? VLCPlayerSimple : VLCPlayer;
+  const playerAvailable = useSimplePlayer ? VLCPlayerSimple : VLCPlayer;
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <View style={styles.header}>
-          <Text style={styles.title}>React Native VLC Pro</Text>
-          <Text style={styles.subtitle}>Phase 1, Semaine 3 - Contrôles avancés</Text>
-        </View>
-
-        <View style={styles.playerContainer}>
-          <VLCPlayer
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
+      <View style={styles.header}>
+        <Text style={styles.title}>🎬 VLC Pro RÉEL Test</Text>
+        <Text style={styles.subtitle}>
+          {useSimplePlayer ? 'Simple' : 'Natif'} Player - {TEST_VIDEOS[currentVideo].name}
+        </Text>
+        <Text style={styles.realBadge}>🔥 COMPOSANT RÉEL VLC</Text>
+      </View>
+      
+      <View style={styles.playerContainer}>
+        {playerAvailable ? (
+          <PlayerComponent
             ref={playerRef}
-            source={{
-              uri: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-              title: 'Big Buck Bunny',
-            }}
+            source={{ uri: TEST_VIDEOS[currentVideo].uri }}
             style={styles.player}
             autoPlay={false}
-            onReady={() => console.log('Player ready')}
-            onPlay={() => console.log('Player playing')}
-            onPause={() => console.log('Player paused')}
-            onError={(error) => console.log('Player error:', error)}
-            onProgress={(progress) => {
-              setPlayerInfo(prev => ({
-                ...prev,
-                currentTime: progress.currentTime,
-                duration: progress.duration,
-              }));
+            onReady={() => addLog('🎬 VLC Player RÉEL prêt !')}
+            onPlay={() => {
+              setIsPlaying(true);
+              addLog('▶️ Lecture démarrée (RÉEL)');
             }}
+            onPause={() => {
+              setIsPlaying(false);
+              addLog('⏸️ Lecture en pause (RÉEL)');
+            }}
+            onStop={() => {
+              setIsPlaying(false);
+              addLog('⏹️ Lecture arrêtée (RÉEL)');
+            }}
+            onError={(error: any) => addLog(`❌ Erreur VLC RÉEL: ${JSON.stringify(error)}`)}
+            onProgress={(data: any) => {
+              if (data?.currentTime && data.currentTime % 5000 < 100) {
+                addLog(`⏱️ Progression RÉELLE: ${Math.round(data.currentTime / 1000)}s`);
+              }
+            }}
+            onEnd={() => addLog('🏁 Fin de la vidéo (RÉEL)')}
+            onBuffer={(data: any) => addLog('⏳ Buffering RÉEL...')}
           />
-        </View>
-
-        <View style={styles.controls}>
-          <TouchableOpacity style={styles.button} onPress={handlePlay}>
-            <Text style={styles.buttonText}>Play</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.button} onPress={handlePause}>
-            <Text style={styles.buttonText}>Pause</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.button} onPress={handleStop}>
-            <Text style={styles.buttonText}>Stop</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.controls}>
-          <TouchableOpacity style={styles.buttonSecondary} onPress={handleSeekBackward}>
-            <Text style={styles.buttonText}>-10s</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.buttonSecondary} onPress={handleSeekForward}>
-            <Text style={styles.buttonText}>+10s</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Informations du lecteur</Text>
-          <View style={styles.infoGrid}>
-            <TouchableOpacity style={styles.infoButton} onPress={handleGetCurrentTime}>
-              <Text style={styles.infoButtonText}>Temps actuel</Text>
-              <Text style={styles.infoValue}>{Math.round(playerInfo.currentTime / 1000)}s</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.infoButton} onPress={handleGetDuration}>
-              <Text style={styles.infoButtonText}>Durée</Text>
-              <Text style={styles.infoValue}>{Math.round(playerInfo.duration / 1000)}s</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.infoButton} onPress={handleGetState}>
-              <Text style={styles.infoButtonText}>État</Text>
-              <Text style={styles.infoValue}>{playerInfo.state}</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.infoButton} onPress={handleGetVolume}>
-              <Text style={styles.infoButtonText}>Volume</Text>
-              <Text style={styles.infoValue}>{playerInfo.volume}%</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.infoButton} onPress={handleIsMuted}>
-              <Text style={styles.infoButtonText}>Son coupé</Text>
-              <Text style={styles.infoValue}>{playerInfo.muted ? 'Oui' : 'Non'}</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.infoButton} onPress={handleGetRate}>
-              <Text style={styles.infoButtonText}>Vitesse</Text>
-              <Text style={styles.infoValue}>{playerInfo.rate}x</Text>
-            </TouchableOpacity>
+        ) : (
+          <View style={styles.placeholder}>
+            <Text style={styles.placeholderText}>📹</Text>
+            <Text style={styles.placeholderText}>VLC Player RÉEL</Text>
+            <Text style={styles.placeholderSubtext}>Module non disponible</Text>
           </View>
-        </View>
+        )}
+      </View>
 
-        <View style={styles.info}>
-          <Text style={styles.infoText}>
-            ✅ Infrastructure du projet configurée
+      {/* Contrôles de test */}
+      <View style={styles.controls}>
+        <TouchableOpacity style={styles.button} onPress={togglePlayerType}>
+          <Text style={styles.buttonText}>
+            {useSimplePlayer ? '🔧 Natif' : '🎯 Simple'}
           </Text>
-          <Text style={styles.infoText}>
-            ✅ Types TypeScript définis
-          </Text>
-          <Text style={styles.infoText}>
-            ✅ Vues natives iOS/Android créées
-          </Text>
-          <Text style={styles.infoText}>
-            ✅ Intégration MobileVLCKit iOS
-          </Text>
-          <Text style={styles.infoText}>
-            ✅ Intégration libVLC Android
-          </Text>
-          <Text style={styles.infoText}>
-            ✅ Bridge React Native fonctionnel
-          </Text>
-          <Text style={styles.infoText}>
-            ✅ Méthodes d'information implémentées
-          </Text>
-          <Text style={styles.infoText}>
-            ✅ Navigation temporelle (seek forward/backward)
-          </Text>
-          <Text style={styles.infoText}>
-            🔄 Prochaine étape : Phase 1, Semaine 4 - Support des formats
-          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={testPlayerMethods}>
+          <Text style={styles.buttonText}>🧪 Test API</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={showFeedbackInLogs}>
+          <Text style={styles.buttonText}>📝 Logs</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Sélection de vidéo */}
+      <View style={styles.videoSelector}>
+        <Text style={styles.sectionTitle}>Vidéos de test:</Text>
+        {TEST_VIDEOS.map((video, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[styles.videoButton, currentVideo === index && styles.activeVideo]}
+            onPress={() => changeVideo(index)}
+          >
+            <Text style={[styles.videoButtonText, currentVideo === index && styles.activeVideoText]}>
+              {video.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Logs */}
+      <View style={styles.logsContainer}>
+        <Text style={styles.sectionTitle}>Logs récents:</Text>
+        <ScrollView style={styles.logsScroll}>
+          {logs.map((log, index) => (
+            <Text key={index} style={styles.logText}>{log}</Text>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Footer avec feedback */}
+      <View style={styles.footer}>
+        <Text style={styles.statusText}>{importStatus}</Text>
+        <View style={styles.feedbackButtons}>
+          <TouchableOpacity style={styles.feedbackButton} onPress={showFeedback}>
+            <Text style={styles.feedbackButtonText}>📝 Voir Feedback</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.copyButton} onPress={copyFeedback}>
+            <Text style={styles.copyButtonText}>📋 Copier</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -270,117 +291,157 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    padding: 20,
+    padding: 15,
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#333333',
+    marginBottom: 5,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
+    fontSize: 12,
+    color: '#666666',
+    marginBottom: 5,
+  },
+  realBadge: {
+    fontSize: 10,
+    color: '#ff6b35',
+    fontWeight: 'bold',
+    backgroundColor: '#fff3f0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
   },
   playerContainer: {
-    margin: 20,
+    height: 200,
+    margin: 15,
     borderRadius: 10,
     overflow: 'hidden',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   player: {
-    width: '100%',
-    height: 200,
+    flex: 1,
+  },
+  placeholder: {
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 32,
+    color: '#ffffff',
+    marginBottom: 5,
+  },
+  placeholderSubtext: {
+    fontSize: 14,
+    color: '#cccccc',
   },
   controls: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    marginBottom: 15,
   },
   button: {
     backgroundColor: '#007AFF',
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     paddingVertical: 10,
     borderRadius: 8,
-    minWidth: 80,
+    flex: 1,
+    marginHorizontal: 5,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: '#ffffff',
+    fontWeight: 'bold',
   },
-  buttonSecondary: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  infoSection: {
-    margin: 20,
-    padding: 15,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
+  videoSelector: {
+    paddingHorizontal: 15,
+    marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-  },
-  infoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  infoButton: {
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-    width: '48%',
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  infoButtonText: {
-    color: '#333',
-    fontSize: 12,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  infoValue: {
-    color: '#007AFF',
     fontSize: 16,
     fontWeight: 'bold',
-    marginTop: 5,
+    color: '#333333',
+    marginBottom: 10,
   },
-  info: {
-    margin: 20,
-    padding: 15,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#333',
+  videoButton: {
+    backgroundColor: '#ffffff',
+    padding: 10,
+    borderRadius: 8,
     marginBottom: 5,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
-});
-
-export default App; 
+  activeVideo: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  videoButtonText: {
+    color: '#333333',
+    fontSize: 14,
+  },
+  activeVideoText: {
+    color: '#ffffff',
+  },
+  logsContainer: {
+    flex: 1,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+  },
+  logsScroll: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    padding: 10,
+    maxHeight: 120,
+  },
+  logText: {
+    fontSize: 11,
+    color: '#666666',
+    marginBottom: 2,
+  },
+  footer: {
+    padding: 15,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  statusText: {
+    fontSize: 12,
+    color: '#333333',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  feedbackButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  feedbackButton: {
+    backgroundColor: '#34C759',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+  },
+  feedbackButtonText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  copyButton: {
+    backgroundColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+  },
+  copyButtonText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+}); 

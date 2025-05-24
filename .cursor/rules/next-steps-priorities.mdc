@@ -3,3 +3,226 @@ description:
 globs:
 alwaysApply: false
 ---
+# Prochaines Étapes - Instructions Prioritaires
+
+## 🎯 Priorité 1 : Tests de Compatibilité Réels
+
+### Objectif Immédiat
+Valider le fonctionnement sur appareils réels des applications d'exemple.
+
+### Applications à Tester
+1. **[example/AdvancedPlayerExample.tsx](mdc:example/AdvancedPlayerExample.tsx)**
+   - Interface complète avec VideoControls
+   - Sélection de sources multiples
+   - Mode plein écran
+
+2. **[example/StreamingExamples.tsx](mdc:example/StreamingExamples.tsx)**
+   - Tests de formats variés
+   - Validation headers HTTP
+   - Interface de sélection
+
+### Plateformes Cibles
+- **Android** : Émulateur API 21+ puis appareil physique
+- **iOS** : Simulateur iOS 12+ puis appareil physique
+
+### Critères de Validation
+- [ ] Application se lance sans crash
+- [ ] Lecture vidéo MP4 fonctionnelle
+- [ ] Streaming HLS opérationnel
+- [ ] Contrôles UI réactifs
+- [ ] Headers HTTP validés avec API réelle
+
+### Livrables
+- Rapport de tests dans `test-results/device-compatibility.md`
+- Screenshots/vidéos de démonstration
+- Liste des bugs identifiés avec priorités
+
+## 🎯 Priorité 2 : Finalisation Interface Utilisateur
+
+### Composants à Créer
+
+#### ProgressBar Standalone
+**Fichier** : `src/components/ProgressBar.tsx`
+
+```typescript
+interface ProgressBarProps {
+  currentTime: number;
+  duration: number;
+  buffered?: number;
+  onSeek: (time: number) => void;
+  onSeekStart?: () => void;
+  onSeekEnd?: () => void;
+  theme?: 'dark' | 'light';
+  height?: number;
+  showThumbnails?: boolean;
+}
+```
+
+**Fonctionnalités requises** :
+- Interaction tactile (tap, drag)
+- Affichage du buffer
+- Seeking précis avec feedback visuel
+- Animations fluides
+- Support des gestes
+
+#### VolumeControl Avancé
+**Fichier** : `src/components/VolumeControl.tsx`
+
+```typescript
+interface VolumeControlProps {
+  volume: number;
+  isMuted: boolean;
+  onVolumeChange: (volume: number) => void;
+  onMuteToggle: () => void;
+  orientation?: 'horizontal' | 'vertical';
+  theme?: 'dark' | 'light';
+  showLabel?: boolean;
+}
+```
+
+#### Hook useVideoControls
+**Fichier** : `src/hooks/useVideoControls.ts`
+
+```typescript
+interface UseVideoControlsOptions {
+  autoHideDelay?: number;
+  enableGestures?: boolean;
+  persistPreferences?: boolean;
+}
+
+interface UseVideoControlsReturn {
+  controlsVisible: boolean;
+  showControls: () => void;
+  hideControls: () => void;
+  toggleControls: () => void;
+  resetAutoHide: () => void;
+}
+```
+
+### Améliorations VideoControls
+**Fichier** : [src/components/VideoControls.tsx](mdc:src/components/VideoControls.tsx)
+
+**À ajouter** :
+- Auto-hide après 3s d'inactivité
+- Gestes swipe pour seek rapide
+- Animations de transition améliorées
+- Configuration des contrôles visibles
+
+### Exports et Documentation
+- Mettre à jour [src/components/index.ts](mdc:src/components/index.ts)
+- Ajouter exports dans [src/index.ts](mdc:src/index.ts)
+- Documenter les nouvelles interfaces
+
+## 🎯 Priorité 3 : Gestion Pistes Audio/Sous-titres
+
+### Fonctionnalités à Implémenter
+
+#### Détection des Pistes
+**Modules natifs à étendre** :
+- [android/src/main/java/com/vlcpro/VLCPlayerView.java](mdc:android/src/main/java/com/vlcpro/VLCPlayerView.java)
+- [ios/VLCPro/VLCPlayerView.swift](mdc:ios/VLCPro/VLCPlayerView.swift)
+
+**Méthodes à ajouter** :
+```typescript
+// Nouvelles méthodes VLCPlayer
+getAudioTracks(): Promise<AudioTrack[]>
+getSubtitleTracks(): Promise<SubtitleTrack[]>
+setAudioTrack(trackId: number): Promise<void>
+setSubtitleTrack(trackId: number): Promise<void>
+```
+
+#### Interface de Sélection
+**Composant à créer** : `src/components/TrackSelector.tsx`
+
+```typescript
+interface TrackSelectorProps {
+  audioTracks: AudioTrack[];
+  subtitleTracks: SubtitleTrack[];
+  selectedAudioTrack?: number;
+  selectedSubtitleTrack?: number;
+  onAudioTrackSelect: (trackId: number) => void;
+  onSubtitleTrackSelect: (trackId: number) => void;
+  visible: boolean;
+  onClose: () => void;
+}
+```
+
+#### Types à Étendre
+**Fichier** : [src/types/Media.ts](mdc:src/types/Media.ts)
+
+**Interfaces existantes à utiliser** :
+- `AudioTrack` ✅ (déjà définie)
+- `SubtitleTrack` ✅ (déjà définie)
+
+### Support des Formats de Sous-titres
+- **SRT** : Format de base
+- **VTT** : WebVTT pour streaming
+- **ASS** : Sous-titres avancés
+
+## 📋 Checklist de Validation
+
+### Avant de Commencer
+- [ ] Lire [PLANNING.md](mdc:PLANNING.md) entièrement
+- [ ] Exécuter `npm test` (doit afficher 65/65)
+- [ ] Exécuter `node scripts/test-streaming.js` (100% réussite)
+- [ ] Comprendre l'architecture dans les règles Cursor
+
+### Après Chaque Session
+- [ ] Tests de régression passants
+- [ ] [PLANNING.md](mdc:PLANNING.md) mis à jour
+- [ ] Nouveaux accomplissements documentés
+- [ ] Progression incrémentée
+
+### Validation Finale
+- [ ] Application exemple fonctionnelle sur émulateur
+- [ ] Interface utilisateur complète et responsive
+- [ ] Documentation à jour
+- [ ] Tests de compatibilité validés
+
+## 🚨 Points d'Attention Critiques
+
+### Dépendances à Ne Pas Modifier
+- React Native 0.79.x
+- libVLC 3.6.5 (Android)
+- MobileVLCKit 4.0.0a2 (iOS)
+
+### Fichiers Sensibles
+- [android/src/main/java/com/vlcpro/VLCPlayerView.java](mdc:android/src/main/java/com/vlcpro/VLCPlayerView.java) - Headers HTTP implémentés
+- [ios/VLCPro/VLCPlayerView.swift](mdc:ios/VLCPro/VLCPlayerView.swift) - Bridge iOS fonctionnel
+- [src/types/index.ts](mdc:src/types/index.ts) - Exports publics
+
+### Standards de Qualité
+- Maintenir 65+ tests passants
+- Zéro erreur ESLint/TypeScript
+- Documentation JSDoc obligatoire
+- Mise à jour [PLANNING.md](mdc:PLANNING.md) systématique
+
+## 📞 Communication
+
+### Utilisation d'interactive_feedback
+```typescript
+// Pour toute question ou validation
+mcp_interactive-feedback_interactive_feedback({
+  project_directory: "/Users/jerome/Projects/react-native-vlc-pro",
+  summary: "Description concise des changements effectués"
+})
+```
+
+### Format de Mise à Jour PLANNING.md
+```markdown
+- **NOUVEAU** : [Description de la fonctionnalité implémentée]
+- Progression : X% → Y% (Phase Z)
+- Prochaines étapes : [Liste mise à jour]
+```
+
+## 🎯 Objectif Final
+
+Livrer un lecteur VLC professionnel pour React Native avec :
+- ✅ Support complet des formats et protocoles
+- 🚧 Interface utilisateur moderne et interactive
+- 📋 Gestion des pistes audio/sous-titres
+- ✅ Documentation complète
+- 🚧 Tests de compatibilité validés
+
+**Durée estimée** : 3-5 sessions de développement
+**Livrable** : Package NPM prêt pour publication

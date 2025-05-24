@@ -93,6 +93,8 @@ public class VLCPlayerViewManager extends SimpleViewManager<VLCPlayerView> {
                 .put("onGetVolume", MapBuilder.of("registrationName", "onGetVolume"))
                 .put("onIsMuted", MapBuilder.of("registrationName", "onIsMuted"))
                 .put("onGetRate", MapBuilder.of("registrationName", "onGetRate"))
+                .put("onFullscreenChange", MapBuilder.of("registrationName", "onFullscreenChange"))
+                .put("onPictureInPictureChange", MapBuilder.of("registrationName", "onPictureInPictureChange"))
                 .build();
     }
     
@@ -112,6 +114,11 @@ public class VLCPlayerViewManager extends SimpleViewManager<VLCPlayerView> {
                 .put("getVolume", 8)
                 .put("isMuted", 9)
                 .put("getRate", 10)
+                .put("setVolume", 11)
+                .put("setMuted", 12)
+                .put("setRate", 13)
+                .put("toggleFullscreen", 14)
+                .put("enterPictureInPicture", 15)
                 .build();
     }
     
@@ -150,6 +157,30 @@ public class VLCPlayerViewManager extends SimpleViewManager<VLCPlayerView> {
                 break;
             case "getRate":
                 view.getRate();
+                break;
+            case "setVolume":
+                if (args != null && args.size() > 0) {
+                    int volume = args.getInt(0);
+                    view.setVolume(volume);
+                }
+                break;
+            case "setMuted":
+                if (args != null && args.size() > 0) {
+                    boolean muted = args.getBoolean(0);
+                    view.setMuted(muted);
+                }
+                break;
+            case "setRate":
+                if (args != null && args.size() > 0) {
+                    float rate = (float) args.getDouble(0);
+                    view.setRate(rate);
+                }
+                break;
+            case "toggleFullscreen":
+                view.toggleFullscreen();
+                break;
+            case "enterPictureInPicture":
+                view.enterPictureInPicture();
                 break;
         }
     }

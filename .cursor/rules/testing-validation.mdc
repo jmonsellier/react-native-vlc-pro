@@ -3,3 +3,201 @@ description:
 globs:
 alwaysApply: false
 ---
+# Tests et Validation - Guide Complet
+
+## ✅ Tests Actuels (65/65 passants)
+
+### Tests Unitaires
+**Commande** : `npm test`
+**Résultat attendu** : 65/65 tests passants ✅
+
+**Couverture estimée** :
+- Composants : ~85%
+- Hooks : ~90%
+- Utilitaires : ~95%
+- Types : 100%
+
+### Tests de Streaming
+**Script** : [scripts/test-streaming.js](mdc:scripts/test-streaming.js)
+**Commande** : `node scripts/test-streaming.js`
+**Résultat** : 100% de réussite (5/5 sources valides) ✅
+
+**Sources validées** :
+1. MP4 Standard - Big Buck Bunny
+2. HLS Stream - Apple Test
+3. DASH Stream - Akamai
+4. WebM Video
+5. Headers Test - httpbin.org
+
+## 🧪 Tests de Compatibilité
+
+### ⏳ Tests sur Appareils Réels (À faire)
+**Objectif** : Valider les exemples sur vrais appareils
+
+**Applications à tester** :
+- [example/AdvancedPlayerExample.tsx](mdc:example/AdvancedPlayerExample.tsx)
+- [example/StreamingExamples.tsx](mdc:example/StreamingExamples.tsx)
+
+**Plateformes cibles** :
+- Android Emulator (API 21+)
+- iOS Simulator (iOS 12+)
+- Appareils physiques
+
+**Critères de validation** :
+- [ ] Application se lance sans crash
+- [ ] Lecture vidéo fonctionnelle
+- [ ] Contrôles réactifs
+- [ ] Headers HTTP fonctionnels
+- [ ] Streaming HLS/DASH opérationnel
+
+### 📊 Métriques de Performance
+**À mesurer** :
+- Temps de démarrage de lecture < 2s
+- Utilisation mémoire stable
+- Pas de fuites mémoire
+- Fluidité des animations UI
+
+## 🔍 Tests de Régression
+
+### Commandes de Vérification
+```bash
+# Tests obligatoires avant chaque commit
+npm test                           # Tests unitaires
+npm run lint                       # Linting ESLint
+npm run type-check                 # Vérification TypeScript
+node scripts/test-streaming.js     # Validation streaming
+npm run build                      # Compilation
+```
+
+### Points de Contrôle
+**Avant modification** :
+- [ ] Tous les tests passent (65/65)
+- [ ] Aucune erreur de lint
+- [ ] Compilation TypeScript réussie
+- [ ] Sources de streaming valides
+
+**Après modification** :
+- [ ] Tests toujours passants
+- [ ] Nouveaux tests ajoutés si nécessaire
+- [ ] Documentation mise à jour
+- [ ] [PLANNING.md](mdc:PLANNING.md) actualisé
+
+## 🎯 Tests d'Intégration
+
+### ✅ Tests Composants
+**Fichiers testés** :
+- [src/components/VLCPlayer.tsx](mdc:src/components/VLCPlayer.tsx)
+- [src/components/VideoControls.tsx](mdc:src/components/VideoControls.tsx)
+- [src/components/VLCPlayerNative.tsx](mdc:src/components/VLCPlayerNative.tsx)
+
+### ✅ Tests Hooks
+**Hook testé** :
+- [src/hooks/useVLCPlayer.ts](mdc:src/hooks/useVLCPlayer.ts)
+
+### ✅ Tests Utilitaires
+**Fonctions testées** :
+- [src/utils/formatTime.ts](mdc:src/utils/formatTime.ts)
+- Validation des types [src/types/Media.ts](mdc:src/types/Media.ts)
+
+## 📋 Tests À Ajouter
+
+### Tests Manquants
+1. **Tests E2E** - Scénarios complets utilisateur
+2. **Tests de Performance** - Métriques automatisées
+3. **Tests de Stress** - Lecture longue durée
+4. **Tests Réseau** - Conditions dégradées
+
+### Nouveaux Composants
+**Quand créés, ajouter tests pour** :
+- `src/components/ProgressBar.tsx`
+- `src/components/VolumeControl.tsx`
+- `src/hooks/useVideoControls.ts`
+
+## 🚨 Tests de Sécurité
+
+### Validation des URLs
+**Implémenté dans** : [scripts/test-streaming.js](mdc:scripts/test-streaming.js)
+
+**Vérifications** :
+- Format URL valide
+- Protocoles autorisés (http, https, rtmp, rtsp)
+- Pas d'injection de code
+- Headers sécurisés
+
+### Tests d'Authentification
+**À valider** :
+- Headers Authorization corrects
+- Gestion des tokens expirés
+- Protection des credentials
+- Validation des certificats SSL
+
+## 📈 Métriques de Qualité
+
+### Objectifs Actuels
+- **Tests unitaires** : 65+ tests passants ✅
+- **Couverture de code** : 85%+ (estimé) ✅
+- **Erreurs de lint** : 0 ✅
+- **Erreurs TypeScript** : 0 ✅
+
+### Objectifs Futurs
+- **Tests E2E** : 10+ scénarios
+- **Performance** : < 2s démarrage
+- **Mémoire** : < 100MB utilisation
+- **Compatibilité** : iOS 12+ / Android API 21+
+
+## 🔧 Configuration des Tests
+
+### Jest Configuration
+**Fichier** : `jest.config.js` (si présent)
+**Setup** : Tests configurés pour React Native + TypeScript
+
+### ESLint Rules
+**Fichier** : `.eslintrc.js`
+**Standards** : TypeScript strict, React hooks
+
+### TypeScript Config
+**Fichier** : `tsconfig.json`
+**Mode** : Strict avec vérifications complètes
+
+## 📊 Rapports de Tests
+
+### Génération de Rapports
+```bash
+# Rapport de couverture
+npm test -- --coverage
+
+# Rapport de streaming
+node scripts/test-streaming.js > test-results/streaming-report.txt
+
+# Rapport de build
+npm run build 2>&1 | tee test-results/build-report.txt
+```
+
+### Localisation des Rapports
+- **Tests unitaires** : Console + coverage/
+- **Tests streaming** : `test-results/streaming-test-report.json`
+- **Logs de build** : Console
+
+## 🎯 Validation Continue
+
+### Hooks Git (Recommandé)
+```bash
+# Pre-commit hook
+#!/bin/sh
+npm test && npm run lint && npm run type-check
+```
+
+### CI/CD (À configurer)
+**Pipeline suggéré** :
+1. Tests unitaires
+2. Tests de lint
+3. Build Android/iOS
+4. Tests sur émulateurs
+5. Tests de performance
+
+### Monitoring
+**Métriques à surveiller** :
+- Temps d'exécution des tests
+- Taille du bundle
+- Performance de lecture
+- Utilisation mémoire

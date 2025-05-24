@@ -1,6 +1,6 @@
 /**
  * Composant VLCPlayer principal
- * Phase 1, Semaine 2 : Intégration des vues natives iOS/Android
+ * Utilise le module natif VLCPlayerNative avec une interface simplifiée
  */
 import React from 'react';
 import type { VLCPlayerProps, VLCPlayerRef } from '../types';

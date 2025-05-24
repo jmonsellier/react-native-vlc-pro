@@ -1,1 +1,1 @@
-{"version":3,"file":"VLCPlayer.d.ts","sourceRoot":"","sources":["../../../../src/components/VLCPlayer.tsx"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,OAAO,KAAqB,MAAM,OAAO,CAAC;AAE1C,OAAO,KAAK,EAAE,cAAc,EAAE,YAAY,EAAE,MAAM,UAAU,CAAC;AAE7D,QAAA,MAAM,SAAS,qFAGb,CAAC;AAIH,eAAe,SAAS,CAAC"}
+{"version":3,"file":"VLCPlayer.d.ts","sourceRoot":"","sources":["../../../../src/components/VLCPlayer.tsx"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,OAAO,KAA6D,MAAM,OAAO,CAAC;AAGlF,OAAO,KAAK,EAAE,cAAc,EAAE,YAAY,EAAE,MAAM,UAAU,CAAC;AAE7D,QAAA,MAAM,SAAS,qFAkJb,CAAC;AAaH,eAAe,SAAS,CAAC"}

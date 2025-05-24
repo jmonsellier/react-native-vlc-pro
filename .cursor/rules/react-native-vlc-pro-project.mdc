@@ -3,3 +3,122 @@ description:
 globs:
 alwaysApply: false
 ---
+# React Native VLC Pro - Règles de Développement
+
+## 📊 État Actuel du Projet
+
+**Phase actuelle** : Phase 1 (95% complétée) → Phase 2 (40% démarrée)  
+**Fichier de suivi principal** : [PLANNING.md](mdc:PLANNING.md)  
+**Tests** : 65/65 passants ✅  
+**Validation streaming** : 100% de réussite sur 5 sources ✅
+
+## 🎯 Prochaines Priorités
+
+1. **Tests de compatibilité réels** - Valider sur émulateur/appareil
+2. **Finalisation interface utilisateur** - Contrôles interactifs avancés  
+3. **Gestion pistes audio/sous-titres** - Sélection multi-pistes
+
+## 📁 Architecture du Projet
+
+### Composants Principaux
+- [src/components/VLCPlayer.tsx](mdc:src/components/VLCPlayer.tsx) - Composant principal ✅
+- [src/components/VideoControls.tsx](mdc:src/components/VideoControls.tsx) - Interface utilisateur moderne ✅
+- [src/components/VLCPlayerNative.tsx](mdc:src/components/VLCPlayerNative.tsx) - Bridge natif ✅
+
+### Types et Configuration
+- [src/types/Media.ts](mdc:src/types/Media.ts) - Types pour sources média ✅
+- [src/types/index.ts](mdc:src/types/index.ts) - Exports des types ✅
+- [src/index.ts](mdc:src/index.ts) - Point d'entrée principal ✅
+
+### Modules Natifs (90% complétés)
+- [android/src/main/java/com/vlcpro/VLCPlayerView.java](mdc:android/src/main/java/com/vlcpro/VLCPlayerView.java) - Support headers HTTP ✅
+- [ios/VLCPro/VLCPlayerView.swift](mdc:ios/VLCPro/VLCPlayerView.swift) - Bridge iOS ✅
+
+### Exemples et Tests
+- [example/StreamingExamples.tsx](mdc:example/StreamingExamples.tsx) - Tests de formats ✅
+- [example/AdvancedPlayerExample.tsx](mdc:example/AdvancedPlayerExample.tsx) - Interface complète ✅
+- [scripts/test-streaming.js](mdc:scripts/test-streaming.js) - Validation automatisée ✅
+
+## 🛠️ Commandes de Validation
+
+```bash
+# Vérifications obligatoires avant modification :
+npm test                           # Doit afficher 65/65 tests passants
+npm run lint                       # Doit être sans erreur
+node scripts/test-streaming.js     # Doit afficher 100% de réussite
+```
+
+## 📝 Règles de Développement
+
+### 1. Mise à jour du PLANNING.md
+- **OBLIGATOIRE** : Mettre à jour [PLANNING.md](mdc:PLANNING.md) après chaque session
+- Incrémenter les pourcentages de progression
+- Ajouter les accomplissements dans la section "NOUVEAU"
+- Réviser les prochaines étapes prioritaires
+
+### 2. Standards de Code
+- Types TypeScript stricts obligatoires
+- Tous les nouveaux exports dans [src/index.ts](mdc:src/index.ts)
+- Documentation JSDoc pour les nouvelles fonctions
+- Tests pour les nouveaux composants
+
+### 3. Gestion des Erreurs
+Utiliser les codes d'erreur standardisés :
+- `VLC_INIT_ERROR` - Erreur d'initialisation VLC
+- `MEDIA_CREATION_FAILED` - Impossible de créer le média
+- `PLAYBACK_ERROR` - Erreur de lecture
+- `INVALID_SOURCE` - Source invalide
+
+## 🎯 Fonctionnalités Implémentées
+
+### ✅ Complétées
+- Support des formats : MP4, MKV, AVI, MOV, WebM
+- Protocoles de streaming : HLS, DASH, RTMP, RTSP
+- Headers HTTP et authentification (Android)
+- Composant VideoControls avec thèmes
+- Hook useVLCPlayer fonctionnel
+- Applications d'exemple complètes
+
+### 🚧 En Cours
+- Tests de compatibilité sur appareils réels
+- Interface utilisateur avancée (sliders interactifs)
+- Auto-hide des contrôles
+
+### 📋 À Faire
+- Gestion des pistes audio multiples
+- Support des sous-titres (SRT, VTT, ASS)
+- Optimisation des performances
+- Documentation API complète
+
+## 🚨 Points d'Attention
+
+### Dépendances Critiques
+- React Native 0.79.x
+- libVLC 3.6.5 (Android)
+- MobileVLCKit 4.0.0a2 (iOS)
+
+### Fichiers Sensibles (Ne pas modifier sans validation)
+- [android/src/main/java/com/vlcpro/VLCPlayerView.java](mdc:android/src/main/java/com/vlcpro/VLCPlayerView.java)
+- [ios/VLCPro/VLCPlayerView.swift](mdc:ios/VLCPro/VLCPlayerView.swift)
+- [src/types/index.ts](mdc:src/types/index.ts)
+
+## 📊 Métriques de Succès
+
+- Tests unitaires : Maintenir 65+ tests passants
+- Couverture de code : Viser 85%+
+- Performance : Temps de démarrage < 2s
+- Taille du package : < 50MB
+
+## 📞 Communication
+
+Utiliser `interactive_feedback` pour toute question ou validation avec :
+- `project_directory`: "/Users/jerome/Projects/react-native-vlc-pro"
+- `summary`: Description concise des changements
+
+## 🎯 Objectif Final
+
+Livrer un lecteur VLC professionnel pour React Native avec :
+- Support complet des formats et protocoles
+- Interface utilisateur moderne et responsive
+- Documentation complète
+- Tests de compatibilité validés

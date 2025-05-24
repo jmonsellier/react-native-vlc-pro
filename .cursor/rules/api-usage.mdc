@@ -3,3 +3,346 @@ description:
 globs:
 alwaysApply: false
 ---
+# Utilisation de l'API - React Native VLC Pro
+
+## Composant principal
+
+### VLCPlayer - Usage de base
+```typescript
+import { VLCPlayer } from 'react-native-vlc-pro';
+
+<VLCPlayer
+  source={{ uri: 'https://example.com/video.mp4' }}
+  style={{ width: '100%', height: 200 }}
+  autoPlay={false}
+  onReady={() => console.log('Player ready')}
+  onPlay={() => console.log('Playing')}
+  onError={(error) => console.log('Error:', error)}
+/>
+```
+
+### Props principales
+**Fichier de référence** : [src/types/VLCPlayer.ts](mdc:src/types/VLCPlayer.ts)
+
+- **source** : `MediaSource` - Source du média (obligatoire)
+- **style** : `ViewStyle` - Style du composant
+- **autoPlay** : `boolean` - Lecture automatique
+- **loop** : `boolean` - Lecture en boucle
+- **muted** : `boolean` - Son coupé
+- **volume** : `number` - Volume (0-100)
+- **rate** : `number` - Vitesse de lecture (0.25-4.0)
+- **paused** : `boolean` - État pause/lecture
+
+## Hook useVLCPlayer
+
+### Usage avec hook
+**Fichier de référence** : [src/hooks/useVLCPlayer.ts](mdc:src/hooks/useVLCPlayer.ts)
+
+```typescript
+import { useVLCPlayer } from 'react-native-vlc-pro';
+
+const { player, controls } = useVLCPlayer({
+  source: { uri: 'video.mp4' },
+  autoPlay: true,
+});
+
+// Utilisation des contrôles
+await controls.play();
+await controls.pause();
+await controls.seekForward(10);
+```
+
+## Méthodes de contrôle
+
+### Contrôles de base
+```typescript
+const playerRef = useRef<VLCPlayerRef>(null);
+
+// Lecture
+await playerRef.current?.play();
+await playerRef.current?.pause();
+await playerRef.current?.stop();
+
+// Navigation
+await playerRef.current?.seek(30000); // 30 secondes
+await playerRef.current?.seekForward(10); // +10 secondes
+await playerRef.current?.seekBackward(10); // -10 secondes
+```
+
+### Méthodes d'information
+**Implémentées dans** : [src/components/VLCPlayerNative.tsx](mdc:src/components/VLCPlayerNative.tsx)
+
+```typescript
+// Obtenir des informations
+const currentTime = await playerRef.current?.getCurrentTime(); // millisecondes
+const duration = await playerRef.current?.getDuration(); // millisecondes
+const state = await playerRef.current?.getState(); // 'playing' | 'paused' | etc.
+const volume = await playerRef.current?.getVolume(); // 0-100
+const muted = await playerRef.current?.isMuted(); // boolean
+const rate = await playerRef.current?.getRate(); // vitesse de lecture
+```
+
+## Types de sources supportées
+
+### Sources locales
+```typescript
+// Fichier dans le bundle
+<VLCPlayer source={{ uri: 'video.mp4' }} />
+
+// Fichier local avec chemin complet
+<VLCPlayer source={{ uri: 'file:///path/to/video.mp4' }} />
+```
+
+### Sources réseau
+```typescript
+// HTTP/HTTPS
+<VLCPlayer source={{ uri: 'https://example.com/video.mp4' }} />
+
+// Streaming HLS
+<VLCPlayer source={{ uri: 'https://example.com/playlist.m3u8' }} />
+
+// RTMP
+<VLCPlayer source={{ uri: 'rtmp://example.com/live/stream' }} />
+```
+
+### Sources avec headers
+```typescript
+<VLCPlayer 
+  source={{ 
+    uri: 'https://example.com/protected-video.mp4',
+    headers: {
+      'Authorization': 'Bearer token',
+      'User-Agent': 'MyApp/1.0'
+    }
+  }} 
+/>
+```
+
+## Gestion des événements
+
+### Événements de lecture
+```typescript
+<VLCPlayer
+  onReady={() => console.log('Player ready')}
+  onPlay={() => console.log('Playing')}
+  onPause={() => console.log('Paused')}
+  onStop={() => console.log('Stopped')}
+  onEnd={() => console.log('Ended')}
+  onError={(error) => console.log('Error:', error)}
+/>
+```
+
+### Événements de progression
+```typescript
+<VLCPlayer
+  onProgress={(progress) => {
+    console.log('Current time:', progress.currentTime);
+    console.log('Duration:', progress.duration);
+    console.log('Position:', progress.position); // 0-1
+  }}
+  onLoad={(loadData) => {
+    console.log('Media loaded:', loadData.duration);
+  }}
+  onBuffer={(bufferData) => {
+    console.log('Buffering:', bufferData.isBuffering);
+  }}
+/>
+```
+
+### Événements d'état
+```typescript
+<VLCPlayer
+  onStateChange={(stateData) => {
+    console.log('New state:', stateData.state);
+    console.log('Previous state:', stateData.previousState);
+  }}
+/>
+```
+
+## Gestion des erreurs
+
+### Types d'erreurs
+**Référence** : [src/types/Events.ts](mdc:src/types/Events.ts)
+
+```typescript
+interface VLCError {
+  code: string;
+  message: string;
+  domain: string;
+}
+
+// Exemples d'erreurs
+// - INVALID_SOURCE : URI manquante ou invalide
+// - MEDIA_CREATION_FAILED : Impossible de créer le média
+// - PLAYBACK_ERROR : Erreur de lecture VLC
+// - NO_MEDIA : Aucun média chargé
+```
+
+### Gestion des erreurs
+```typescript
+<VLCPlayer
+  onError={(error) => {
+    switch (error.code) {
+      case 'INVALID_SOURCE':
+        console.log('Source invalide:', error.message);
+        break;
+      case 'PLAYBACK_ERROR':
+        console.log('Erreur de lecture:', error.message);
+        break;
+      default:
+        console.log('Erreur inconnue:', error);
+    }
+  }}
+/>
+```
+
+## Formats supportés
+
+### Conteneurs vidéo
+- **MP4** : Format principal recommandé
+- **MKV** : Matroska Video
+- **AVI** : Audio Video Interleave
+- **MOV** : QuickTime Movie
+- **FLV** : Flash Video
+- **3GP** : 3GPP Mobile
+- **ASF/WMV** : Windows Media
+
+### Codecs vidéo
+- **H.264** : Codec principal recommandé
+- **H.265/HEVC** : Haute efficacité
+- **VP8/VP9** : WebM
+- **MPEG-4** : Standard MPEG
+
+### Codecs audio
+- **AAC** : Audio principal recommandé
+- **MP3** : MPEG Audio Layer 3
+- **Vorbis** : Ogg Vorbis
+- **FLAC** : Free Lossless Audio Codec
+- **AC3** : Dolby Digital
+
+### Protocoles de streaming
+- **HTTP/HTTPS** : Streaming basique
+- **HLS** : HTTP Live Streaming (Apple)
+- **DASH** : Dynamic Adaptive Streaming
+- **RTMP** : Real-Time Messaging Protocol
+- **RTSP** : Real Time Streaming Protocol
+
+## Exemples d'utilisation
+
+### Lecteur simple
+**Référence** : [example/App.tsx](mdc:example/App.tsx)
+
+```typescript
+import React, { useRef } from 'react';
+import { VLCPlayer, VLCPlayerRef } from 'react-native-vlc-pro';
+
+const SimplePlayer = () => {
+  const playerRef = useRef<VLCPlayerRef>(null);
+
+  return (
+    <VLCPlayer
+      ref={playerRef}
+      source={{ uri: 'https://example.com/video.mp4' }}
+      style={{ width: '100%', height: 200 }}
+      autoPlay={false}
+      onReady={() => console.log('Ready')}
+    />
+  );
+};
+```
+
+### Lecteur avec contrôles
+```typescript
+const PlayerWithControls = () => {
+  const playerRef = useRef<VLCPlayerRef>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handlePlay = async () => {
+    await playerRef.current?.play();
+    setIsPlaying(true);
+  };
+
+  const handlePause = async () => {
+    await playerRef.current?.pause();
+    setIsPlaying(false);
+  };
+
+  return (
+    <View>
+      <VLCPlayer
+        ref={playerRef}
+        source={{ uri: 'video.mp4' }}
+        style={{ width: '100%', height: 200 }}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+      />
+      
+      <TouchableOpacity onPress={isPlaying ? handlePause : handlePlay}>
+        <Text>{isPlaying ? 'Pause' : 'Play'}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+```
+
+### Lecteur avec informations
+```typescript
+const PlayerWithInfo = () => {
+  const playerRef = useRef<VLCPlayerRef>(null);
+  const [playerInfo, setPlayerInfo] = useState({
+    currentTime: 0,
+    duration: 0,
+    state: 'idle',
+  });
+
+  const updateInfo = async () => {
+    const currentTime = await playerRef.current?.getCurrentTime() || 0;
+    const duration = await playerRef.current?.getDuration() || 0;
+    const state = await playerRef.current?.getState() || 'idle';
+    
+    setPlayerInfo({ currentTime, duration, state });
+  };
+
+  return (
+    <View>
+      <VLCPlayer
+        ref={playerRef}
+        source={{ uri: 'video.mp4' }}
+        style={{ width: '100%', height: 200 }}
+        onProgress={(progress) => {
+          setPlayerInfo(prev => ({
+            ...prev,
+            currentTime: progress.currentTime,
+            duration: progress.duration,
+          }));
+        }}
+      />
+      
+      <Text>État: {playerInfo.state}</Text>
+      <Text>Temps: {Math.round(playerInfo.currentTime / 1000)}s</Text>
+      <Text>Durée: {Math.round(playerInfo.duration / 1000)}s</Text>
+      
+      <TouchableOpacity onPress={updateInfo}>
+        <Text>Mettre à jour les infos</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+```
+
+## Bonnes pratiques
+
+### Performance
+- Utiliser `autoPlay={false}` pour éviter la lecture automatique
+- Nettoyer les références avec `useEffect` cleanup
+- Éviter les re-renders inutiles avec `useMemo` et `useCallback`
+
+### Gestion d'état
+- Utiliser le hook `useVLCPlayer` pour la logique complexe
+- Synchroniser l'état local avec les événements du lecteur
+- Gérer les erreurs avec des fallbacks appropriés
+
+### Accessibilité
+- Ajouter des `testID` pour les tests automatisés
+- Implémenter les contrôles accessibles
+- Fournir des descriptions audio pour les malvoyants

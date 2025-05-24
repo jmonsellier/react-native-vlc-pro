@@ -82,6 +82,14 @@ const VLCPlayerNative = forwardRef<VLCPlayerRef, VLCPlayerNativeProps>(
       props.onGetRate?.(event.nativeEvent);
     };
 
+    const handleFullscreenChange = (event: any) => {
+      props.onFullscreenChange?.(event.nativeEvent);
+    };
+
+    const handlePictureInPictureChange = (event: any) => {
+      props.onPictureInPictureChange?.(event.nativeEvent);
+    };
+
     // Implémentation des méthodes de référence
     useImperativeHandle(ref, () => {
       const seek = async (time: number) => {
@@ -157,24 +165,30 @@ const VLCPlayerNative = forwardRef<VLCPlayerRef, VLCPlayerNativeProps>(
 
         // Contrôles audio/vidéo
         setVolume: async (volume: number) => {
-          // TODO: Phase 1, Semaine 3 - Implémenter setVolume via props
-          console.log(
-            `VLCPlayerNative: setVolume(${volume}) - À implémenter en Phase 1, Semaine 3`
-          );
+          const nodeHandle = findNodeHandle(nativeRef.current);
+          if (nodeHandle) {
+            UIManager.dispatchViewManagerCommand(nodeHandle, 'setVolume', [volume]);
+          } else {
+            console.warn('VLCPlayerNative: nativeRef.current is null, cannot setVolume');
+          }
         },
 
         setMuted: async (muted: boolean) => {
-          // TODO: Phase 1, Semaine 3 - Implémenter setMuted via props
-          console.log(
-            `VLCPlayerNative: setMuted(${muted}) - À implémenter en Phase 1, Semaine 3`
-          );
+          const nodeHandle = findNodeHandle(nativeRef.current);
+          if (nodeHandle) {
+            UIManager.dispatchViewManagerCommand(nodeHandle, 'setMuted', [muted]);
+          } else {
+            console.warn('VLCPlayerNative: nativeRef.current is null, cannot setMuted');
+          }
         },
 
         setRate: async (rate: number) => {
-          // TODO: Phase 1, Semaine 3 - Implémenter setRate via props
-          console.log(
-            `VLCPlayerNative: setRate(${rate}) - À implémenter en Phase 1, Semaine 3`
-          );
+          const nodeHandle = findNodeHandle(nativeRef.current);
+          if (nodeHandle) {
+            UIManager.dispatchViewManagerCommand(nodeHandle, 'setRate', [rate]);
+          } else {
+            console.warn('VLCPlayerNative: nativeRef.current is null, cannot setRate');
+          }
         },
 
         // Pistes
@@ -194,10 +208,21 @@ const VLCPlayerNative = forwardRef<VLCPlayerRef, VLCPlayerNativeProps>(
 
         // Interface
         toggleFullscreen: async () => {
-          // TODO: Phase 2 - Implémenter toggleFullscreen
-          console.log(
-            'VLCPlayerNative: toggleFullscreen() - À implémenter en Phase 2'
-          );
+          const nodeHandle = findNodeHandle(nativeRef.current);
+          if (nodeHandle) {
+            UIManager.dispatchViewManagerCommand(nodeHandle, 'toggleFullscreen', []);
+          } else {
+            console.warn('VLCPlayerNative: nativeRef.current is null, cannot toggleFullscreen');
+          }
+        },
+
+        enterPictureInPicture: async () => {
+          const nodeHandle = findNodeHandle(nativeRef.current);
+          if (nodeHandle) {
+            UIManager.dispatchViewManagerCommand(nodeHandle, 'enterPictureInPicture', []);
+          } else {
+            console.warn('VLCPlayerNative: nativeRef.current is null, cannot enterPictureInPicture');
+          }
         },
 
         takeSnapshot: async () => {
@@ -320,6 +345,8 @@ const VLCPlayerNative = forwardRef<VLCPlayerRef, VLCPlayerNativeProps>(
       onGetVolume={handleGetVolume}
       onIsMuted={handleIsMuted}
       onGetRate={handleGetRate}
+      onFullscreenChange={handleFullscreenChange}
+      onPictureInPictureChange={handlePictureInPictureChange}
     />;
   }
 );
